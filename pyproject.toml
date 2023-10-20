@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "simulation-model"
+version = "0.1.0"
+description = ""
+authors = ["chill-rost <chill.rost.pan@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.10.12"
+matplotlib = "^3.8.0"
+scipy = "^1.11.3"
+mesa = "^2.1.2"
+mesa-sir = "^0.0.3"
+bokeh = "^3.3.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
