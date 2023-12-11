@@ -12,6 +12,7 @@ scipy = "^1.11.3"
 mesa = "^2.1.2"
 mesa-sir = "^0.0.3"
 bokeh = "^3.3.0"
+pygame = "^2.5.2"
 
 
 [build-system]

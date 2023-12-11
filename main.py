@@ -1,56 +1,80 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Model parameters
-beta = 0.3  # Infection rate
-gamma = 0.1  # Recovery rate
-mu = 0.02  # Death rate
+from SEIR import SEIR
 
-# Initial conditions
-S0 = 0.99  # Initial susceptible fraction
-I0 = 0.01  # Initial infectious fraction
-R0 = 0.0   # Initial recovered fraction
-D0 = 0.0   # Initial died fraction
 
-# Total population
-N = 1000  # Total population size
+# DEFINING PARAMETERS
 
-# Discrete time step (stride)
+# Time in days
+t_max = 100
 dt = 0.1
+t = np.linspace(0, t_max, int(t_max/dt) + 1)
 
-# Number of time steps
-T = 209
-num_steps = int(T / dt)
+# Initial values.
+# These are normalized population values
+N = 10000
+S0 = 1 - 1/N
+E0 = 1/N
+I0 = 0
+R0 = 0
 
-# Arrays to store results
-S = [S0 * N]
-I = [I0 * N]
-R = [R0 * N]
-D = [D0 * N]
+# Model Parameters: COVID_19
 
-# Simulation loop
-for _ in range(num_steps):
-    dS = -beta * S[-1] * I[-1] * dt
-    dI = (beta * S[-1] - gamma - mu) * I[-1] / N * dt
-    dR = gamma * I[-1] * dt
-    dD = mu * I[-1] * dt
+# 1/t_incupation. t_incubation = 5days
+alpha = 0.2
 
-    S.append(S[-1] + dS)
-    I.append(I[-1] + dI)
-    R.append(R[-1] + dR)
-    D.append(D[-1] + dD)
+# the invearse of the mean infectious period (1/t_infectious).
+# t_infectious = 2 days
+gamma = 0.5
 
-# Time array
-t = np.arange(0, T + dt, dt)
+# average contact rate in the population,
+# R0 = beta/gamma. R0 represents how quickly the disease spreads.
+# For COVID-19 this value is around 3.5.
+beta = 1.75
 
-# Plot the results
-plt.figure(figsize=(10, 6))
-plt.plot(t, S, label='Susceptible')
-plt.plot(t, I, label='Infectious')
-plt.plot(t, R, label='Recovered')
-plt.plot(t, D, label='Died')
-plt.xlabel('Time')
+# FITTING MODEL
+model = SEIR(beta, alpha, gamma, S0, E0, I0, R0)
+U = model.compile(t)
+
+
+# Model Without Social Distancing
+fig = plt.figure()
+S_t = plt.plot(t, U[:, 0])
+E_t = plt.plot(t, U[:, 1])
+I_t = plt.plot(t, U[:, 2])
+R_t = plt.plot(t, U[:, 3])
+plt.legend(['Susceptible', 'Exposed', 'Infected', 'Recovered'])
+plt.xlabel('Days')
 plt.ylabel('Fraction of Population')
-plt.legend()
-plt.title('SIRD Model with Discrete Time Steps')
+
+plt.title('SEIR model for COVID-19 without Social Distancing')
+fig.savefig('Images/without_social_distancing.png')
+plt.show()
+
+# Model for Different values of the Social Distancing parameter
+
+# Time in days
+t_max = 200
+dt = 0.1
+t = np.linspace(0, t_max, int(t_max/dt) + 1)
+
+
+rho_list = [0.4, 0.7, 1]
+colors = ['red', 'green', 'blue']
+legend = []
+fig = plt.figure()
+for i, rho in enumerate(rho_list):
+    model = SEIR(beta, alpha, gamma, S0, E0, I0, R0, rho)
+    U = model.compile(t)
+    E_t = plt.plot(t, U[:, 1], color=colors[i])
+    I_t = plt.plot(t, U[:, 2], ':', color=colors[i])
+    legend.append(f'Exposed (rho = {rho})')
+    legend.append(f'Infected (rho = {rho})')
+
+plt.xlabel('Days')
+plt.ylabel('Fraction of Population')
+plt.legend(legend)
+plt.title('SEIR model for COVID-19 with Social Distancing')
+fig.savefig('Images/social_distancing.png')
 plt.show()
