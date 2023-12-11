@@ -1,80 +1,32 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
-from SEIR import SEIR
+from simulation import Simulation
+import argparse
 
 
-# DEFINING PARAMETERS
+def main(args):
+    simulation = Simulation(args)
+    simulation.run(number_days=args.TD)
 
-# Time in days
-t_max = 100
-dt = 0.1
-t = np.linspace(0, t_max, int(t_max/dt) + 1)
-
-# Initial values.
-# These are normalized population values
-N = 10000
-S0 = 1 - 1/N
-E0 = 1/N
-I0 = 0
-R0 = 0
-
-# Model Parameters: COVID_19
-
-# 1/t_incupation. t_incubation = 5days
-alpha = 0.2
-
-# the invearse of the mean infectious period (1/t_infectious).
-# t_infectious = 2 days
-gamma = 0.5
-
-# average contact rate in the population,
-# R0 = beta/gamma. R0 represents how quickly the disease spreads.
-# For COVID-19 this value is around 3.5.
-beta = 1.75
-
-# FITTING MODEL
-model = SEIR(beta, alpha, gamma, S0, E0, I0, R0)
-U = model.compile(t)
+    args = parser.parse_args()
 
 
-# Model Without Social Distancing
-fig = plt.figure()
-S_t = plt.plot(t, U[:, 0])
-E_t = plt.plot(t, U[:, 1])
-I_t = plt.plot(t, U[:, 2])
-R_t = plt.plot(t, U[:, 3])
-plt.legend(['Susceptible', 'Exposed', 'Infected', 'Recovered'])
-plt.xlabel('Days')
-plt.ylabel('Fraction of Population')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
 
-plt.title('SEIR model for COVID-19 without Social Distancing')
-fig.savefig('Images/without_social_distancing.png')
-plt.show()
+    parser.add_argument('--E', '--exposed', help='initial # people exposed', type=int, default=1)
+    parser.add_argument('--I', '--infected', help='initial # people infected', type=int, default=0)
+    parser.add_argument('--R', '--recovered', help='initial # people recovered', type=int, default=0)
+    parser.add_argument('--D', '--dead', help='initial # people dead', type=int, default=0)
+    parser.add_argument('--TD', '--time_days', help='size of movement for person', type=int, default=160)
+    parser.add_argument('--TP', '--total_people', help='total population size', type=int, default=10000)
+    parser.add_argument('--sig', '--sigma',
+                        help='Rate of latent individuals becoming infected (1/latent infection period)', type=float,
+                        default=.143)
+    parser.add_argument('--gam', '--gamma', help='Recovery rate == 1/duration of infection = gamma', type=float,
+                        default=.095)
+    parser.add_argument('--mu', '--mu', help=' Death rate', type=float, default=.005)
+    parser.add_argument('--prob', '--prob_people',
+                        help='beta knot = probability of infection if meeting an infected person', type=float, default=.1)
+    parser.add_argument('--numb', '--numb_people', help='k = total number of people encountered', type=int, default=10)
 
-# Model for Different values of the Social Distancing parameter
-
-# Time in days
-t_max = 200
-dt = 0.1
-t = np.linspace(0, t_max, int(t_max/dt) + 1)
-
-
-rho_list = [0.4, 0.7, 1]
-colors = ['red', 'green', 'blue']
-legend = []
-fig = plt.figure()
-for i, rho in enumerate(rho_list):
-    model = SEIR(beta, alpha, gamma, S0, E0, I0, R0, rho)
-    U = model.compile(t)
-    E_t = plt.plot(t, U[:, 1], color=colors[i])
-    I_t = plt.plot(t, U[:, 2], ':', color=colors[i])
-    legend.append(f'Exposed (rho = {rho})')
-    legend.append(f'Infected (rho = {rho})')
-
-plt.xlabel('Days')
-plt.ylabel('Fraction of Population')
-plt.legend(legend)
-plt.title('SEIR model for COVID-19 with Social Distancing')
-fig.savefig('Images/social_distancing.png')
-plt.show()
+    args = parser.parse_args()
+    main(args)
